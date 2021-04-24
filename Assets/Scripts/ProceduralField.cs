@@ -81,7 +81,7 @@ public class ProceduralField : MonoBehaviour
         luxuriousness = stadium.Luxuriousness;
         hype = stadium.Hype;
         hasGrindRail = stadium.Mods.Contains("GRIND_RAIL");
-
+        hasBigBucket = stadium.Mods.Contains("BIG_BUCKET");
         GenerateField();
     }
 
@@ -105,10 +105,13 @@ public class ProceduralField : MonoBehaviour
     public float hype = 0.0f;
 
     [SerializeField]
-    public bool hasFourthBase = false;
+    private bool hasFourthBase = false;
 
     [SerializeField]
-    public bool hasGrindRail = false;
+    private bool hasGrindRail = false;
+
+    [SerializeField]
+    private bool hasBigBucket = false;
 
     private Vector3 pitchingMoundCenter;
 

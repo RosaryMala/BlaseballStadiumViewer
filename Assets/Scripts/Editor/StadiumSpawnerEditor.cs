@@ -10,8 +10,6 @@ using Newtonsoft.Json;
 [CustomEditor(typeof(StadiumSpawner))]
 public class StadiumSpawnerEditor : Editor
 {
-    int selectedStadium = 0;
-    List<string> stadiumOptions = new List<string>();
 
     public override void OnInspectorGUI()
     {
@@ -37,12 +35,12 @@ public class StadiumSpawnerEditor : Editor
             {
                 SibrStadiumList stadiumList = JsonConvert.DeserializeObject<SibrStadiumList>(webRequest.downloadHandler.text);
                 stadiumSpawner.stadiums = stadiumList.Data;
-                stadiumOptions.Clear();
+                stadiumSpawner.stadiumOptions.Clear();
                 foreach (var stadium in stadiumSpawner.stadiums)
                 {
-                    stadiumOptions.Add(string.Format("{0}, ({1})", stadium.Data.Name, stadium.Data.Nickname));
+                    stadiumSpawner.stadiumOptions.Add(string.Format("{0}, ({1})", stadium.Data.Name, stadium.Data.Nickname));
                 }
-                stadiumSpawner.LoadStadium(stadiumSpawner.stadiums[selectedStadium].Data);
+                stadiumSpawner.LoadStadium(stadiumSpawner.stadiums[stadiumSpawner.selectedStadium].Data);
             }
             else
             {
@@ -51,20 +49,20 @@ public class StadiumSpawnerEditor : Editor
         }
         if (stadiumSpawner.stadiums != null)
         {
-            if(stadiumOptions.Count != stadiumSpawner.stadiums.Count)
+            if(stadiumSpawner.stadiumOptions.Count != stadiumSpawner.stadiums.Count)
             {
-                stadiumOptions.Clear();
+                stadiumSpawner.stadiumOptions.Clear();
                 foreach (var stadium in stadiumSpawner.stadiums)
                 {
-                    stadiumOptions.Add(string.Format("{0}, ({1})", stadium.Data.Name, stadium.Data.Nickname));
+                    stadiumSpawner.stadiumOptions.Add(string.Format("{0}, ({1})", stadium.Data.Name, stadium.Data.Nickname));
                 }
             }
             EditorGUI.BeginChangeCheck();
-            selectedStadium = EditorGUILayout.Popup(selectedStadium, stadiumOptions.ToArray());
+            stadiumSpawner.selectedStadium = EditorGUILayout.Popup(stadiumSpawner.selectedStadium, stadiumSpawner.stadiumOptions.ToArray());
             if(EditorGUI.EndChangeCheck())
             {
-                Debug.Log(stadiumOptions[selectedStadium]);
-                stadiumSpawner.LoadStadium(stadiumSpawner.stadiums[selectedStadium].Data);
+                Debug.Log(stadiumSpawner.stadiumOptions[stadiumSpawner.selectedStadium]);
+                stadiumSpawner.LoadStadium(stadiumSpawner.stadiums[stadiumSpawner.selectedStadium].Data);
             }
         }
         serializedObject.ApplyModifiedProperties();

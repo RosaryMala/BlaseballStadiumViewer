@@ -10,6 +10,8 @@ public class StadiumSpawner : MonoBehaviour
 {
     [SerializeField]
     public List<Stadium> stadiums;
+    public int selectedStadium = 0;
+    public List<string> stadiumOptions = new List<string>();
 
     ProceduralField field;
     private void Awake()
