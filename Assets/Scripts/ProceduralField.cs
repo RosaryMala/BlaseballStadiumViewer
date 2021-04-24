@@ -174,6 +174,7 @@ public class ProceduralField : MonoBehaviour
     List<int> inFieldGrassTriangles = new List<int>();
     List<int> outFieldTriangles = new List<int>();
     List<int> wallTriangles = new List<int>();
+    List<int> metalTriangles = new List<int>();
     //we use IntPoints because they're better for comparison. If needed we can make a new container.
     Dictionary<int, Dictionary<Vector3Int, int>> pointLookup = new Dictionary<int, Dictionary<Vector3Int, int>>();
 
@@ -192,6 +193,7 @@ public class ProceduralField : MonoBehaviour
         inFieldGrassTriangles.Clear();
         outFieldTriangles.Clear();
         wallTriangles.Clear();
+        metalTriangles.Clear();
         pointLookup.Clear();
         mesh.Clear();
 
@@ -370,7 +372,7 @@ public class ProceduralField : MonoBehaviour
         {
             List<IntPoint> grindRail = new List<IntPoint>();
             AddArcThreePoint(grindRail, thirdBase + Vector3.right * runLaneWidth, pitchingRubber + Vector3.forward * pitchingMoundWidth / 2, firstBase + Vector3.left * runLaneWidth, 3);
-            CreateWall(wallTriangles, grindRail, 0.2f, 0.05f);
+            CreateWall(metalTriangles, grindRail, 0.2f, 0.05f);
         }
 
         for (int i = 0; i < vertices.Count; i++)
@@ -378,13 +380,14 @@ public class ProceduralField : MonoBehaviour
             vertices[i] = AddSlope(vertices[i]);
         }
 
-        mesh.subMeshCount = 4;
+        mesh.subMeshCount = 5;
         mesh.vertices = vertices.ToArray();
         mesh.uv = uvs.ToArray();
         mesh.SetTriangles(dirtTriangles.ToArray(), 0, false);
         mesh.SetTriangles(inFieldGrassTriangles.ToArray(), 1, false);
         mesh.SetTriangles(outFieldTriangles, 2, false);
         mesh.SetTriangles(wallTriangles, 3, false);
+        mesh.SetTriangles(metalTriangles, 4, false);
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
