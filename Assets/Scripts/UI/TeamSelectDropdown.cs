@@ -46,7 +46,7 @@ public class TeamSelectDropdown : MonoBehaviour
 
             foreach (var stadium in stadiumList)
             {
-                UnityWebRequest teamRequest = UnityWebRequest.Get("https://www.blaseball.com/database/team?id=" + stadium.Data.TeamID);
+                UnityWebRequest teamRequest = UnityWebRequest.Get("https://api.sibr.dev/proxy/database/team?id=" + stadium.Data.TeamID);
                 yield return teamRequest.SendWebRequest();
 
                 string stadiumName;
