@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 [RequireComponent(typeof(Dropdown))]
 public class TeamSelectDropdown : MonoBehaviour
@@ -12,12 +13,19 @@ public class TeamSelectDropdown : MonoBehaviour
     Dropdown dropdown = null;
     private List<Stadium> stadiumList;
 
+    public ProceduralField field;
+
     void Start()
     {
         dropdown = GetComponent<Dropdown>();
 
 
         StartCoroutine(TeamLoader());
+    }
+
+    public void SelectionCallback()
+    {
+        field.LoadStadium(stadiumList[dropdown.value].Data);
     }
 
     IEnumerator TeamLoader()
@@ -38,8 +46,29 @@ public class TeamSelectDropdown : MonoBehaviour
 
             foreach (var stadium in stadiumList)
             {
+                UnityWebRequest teamRequest = UnityWebRequest.Get("https://www.blaseball.com/database/team?id=" + stadium.Data.TeamID);
+                yield return teamRequest.SendWebRequest();
 
+                string stadiumName;
+
+                if(teamRequest.result == UnityWebRequest.Result.Success)
+                {
+                    var team = JsonConvert.DeserializeObject<TeamData>(teamRequest.downloadHandler.text);
+                    stadiumName = string.Format("{0} ({1}), {2}", stadium.Data.Name, stadium.Data.Nickname, team.FullName);
+                }
+                else
+                {
+                    Debug.LogError(teamRequest.error);
+                    stadiumName = string.Format("{0} ({1})", stadium.Data.Name, stadium.Data.Nickname);
+                }
+
+                Dropdown.OptionData stadiumOption = new Dropdown.OptionData(stadiumName);
+
+                dropdown.options.Add(stadiumOption);
+                yield return null;
             }
+            dropdown.SetValueWithoutNotify(1);
+            dropdown.value = 0;
         }
 
         yield return null;
