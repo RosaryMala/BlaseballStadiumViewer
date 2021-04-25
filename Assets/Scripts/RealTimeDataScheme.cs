@@ -4,12 +4,42 @@ using System.Collections.Generic;
 
 namespace QuickType
 {
+    [Serializable]
+    public partial class TeamData
+    {
+        [JsonProperty("id")]
+        public Guid Id { get; set; }
+
+        [JsonProperty("lineup")]
+        public List<Guid> LineUp { get; set; }
+
+        [JsonProperty("rotation")]
+        public List<Guid> Rotation { get; set; }
+
+        [JsonProperty("bullpen")]
+        public List<Guid> Bullpen { get; set; }
+
+        [JsonProperty("bench")]
+        public List<Guid> Bench { get; set; }
+
+        [JsonProperty("fullName")]
+        public string FullName { get; set; }
+
+        [JsonProperty("location")]
+        public string Location { get; set; }
+     
+        [JsonProperty("nickname")]
+        public string Nickname { get; set; }
+    }
 
     [Serializable]
     public partial class StadiumData
     {
         [JsonProperty("id")]
         public Guid Id { get; set; }
+
+        [JsonProperty("teamId")]
+        public Guid TeamID { get; set; }
 
         [JsonProperty("hype")]
         public int Hype { get; set; }

@@ -38,7 +38,26 @@ public class StadiumSpawnerEditor : Editor
                 stadiumSpawner.stadiumOptions.Clear();
                 foreach (var stadium in stadiumSpawner.stadiums)
                 {
-                    stadiumSpawner.stadiumOptions.Add(string.Format("{0}, ({1})", stadium.Data.Name, stadium.Data.Nickname));
+                    UnityWebRequest teamRequest = UnityWebRequest.Get("https://www.blaseball.com/database/team?id=" + stadium.Data.TeamID);
+                    teamRequest.SendWebRequest();
+                    while (!teamRequest.isDone)
+                        Thread.Sleep(50);
+                    TeamData team = null;
+                    if(teamRequest.result == UnityWebRequest.Result.Success)
+                    {
+                        team = JsonConvert.DeserializeObject<TeamData>(teamRequest.downloadHandler.text);
+                    }
+                    string stadiumLabel;
+                    if(team != null)
+                    {
+                        stadiumLabel = string.Format("{0}, ({1}), {2}", stadium.Data.Name, stadium.Data.Nickname, team.FullName);
+                    }
+                    else
+                    {
+                        stadiumLabel = string.Format("{0}, ({1})", stadium.Data.Name, stadium.Data.Nickname);
+                    }
+
+                    stadiumSpawner.stadiumOptions.Add(stadiumLabel);
                 }
                 stadiumSpawner.LoadStadium(stadiumSpawner.stadiums[stadiumSpawner.selectedStadium].Data);
             }
