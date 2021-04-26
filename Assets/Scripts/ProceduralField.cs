@@ -59,32 +59,15 @@ public class ProceduralField : MonoBehaviour
     [SerializeField]
     private Transform pitchingRubberObj;
 
+    [SerializeField]
+    private Transform cameraPivot;
+
     [Range(0, 1)]
     public float grandiosity = 0.5f;
     [Range(0, 1)]
     public float fortification = 0.5f;
     [Range(0, 1)]
     public float obtuseness = 0.5f;
-
-    public void LoadStadium(StadiumData stadium)
-    {
-        grandiosity = stadium.Grandiosity;
-        fortification = stadium.Fortification;
-        obtuseness = stadium.Obtuseness;
-        ominousness = stadium.Ominousness;
-        inconvenience = stadium.Inconvenience;
-        viscosity = stadium.Viscosity;
-        forwardness = stadium.Forwardness;
-        mysticism = stadium.Mysticism;
-        elongation = stadium.Elongation;
-        filthiness = stadium.Filthiness;
-        luxuriousness = stadium.Luxuriousness;
-        hype = stadium.Hype;
-        hasGrindRail = stadium.Mods.Contains("GRIND_RAIL");
-        hasBigBucket = stadium.Mods.Contains("BIG_BUCKET");
-        GenerateField();
-    }
-
     [Range(0, 1)]
     public float ominousness = 0.5f;
     [Range(0, 1)]
@@ -112,6 +95,25 @@ public class ProceduralField : MonoBehaviour
 
     [SerializeField]
     private bool hasBigBucket = false;
+
+    public void LoadStadium(StadiumData stadium)
+    {
+        grandiosity = stadium.Grandiosity;
+        fortification = stadium.Fortification;
+        obtuseness = stadium.Obtuseness;
+        ominousness = stadium.Ominousness;
+        inconvenience = stadium.Inconvenience;
+        viscosity = stadium.Viscosity;
+        forwardness = stadium.Forwardness;
+        mysticism = stadium.Mysticism;
+        elongation = stadium.Elongation;
+        filthiness = stadium.Filthiness;
+        luxuriousness = stadium.Luxuriousness;
+        hype = stadium.Hype;
+        hasGrindRail = stadium.Mods.Contains("GRIND_RAIL");
+        hasBigBucket = stadium.Mods.Contains("BIG_BUCKET");
+        GenerateField();
+    }
 
     private Vector3 pitchingMoundCenter;
 
@@ -415,6 +417,14 @@ public class ProceduralField : MonoBehaviour
         }
         if (pitchingRubberObj != null)
             pitchingRubberObj.position = transform.TransformPoint(AddSlope(pitchingRubber));
+
+        if(cameraPivot != null)
+        {
+            var bounds = mesh.bounds;
+            var center = bounds.center;
+            center.y = bounds.min.y;
+            cameraPivot.position = transform.TransformPoint(center);
+        }
 
     }
     [SerializeField]
