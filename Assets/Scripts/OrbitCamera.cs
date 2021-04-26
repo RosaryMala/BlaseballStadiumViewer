@@ -18,6 +18,8 @@ public class OrbitCamera : MonoBehaviour
     float rotationSpeed = 90f;
     [SerializeField, Range(-89f, 89f)]
     float minVerticalAngle = -30f, maxVerticalAngle = 60f;
+    [SerializeField]
+    float zoomSpeed = 5f;
 
     Vector2 orbitAngles = new Vector2(45f, 0f);
 
@@ -41,6 +43,7 @@ public class OrbitCamera : MonoBehaviour
         {
             lookRotation = transform.localRotation;
         }
+        ManualZoom();
         Vector3 lookDirection = lookRotation * Vector3.forward;
         Vector3 lookPosition = focusPoint - lookDirection * distance;
         transform.SetPositionAndRotation(lookPosition, lookRotation);
@@ -89,6 +92,19 @@ public class OrbitCamera : MonoBehaviour
         return false;
     }
 
+    private bool ManualZoom()
+    {
+        float input = Input.GetAxis("Zoom");
+        const float e = 0.001f;
+        if (input < -e || input > e)
+        {
+            distance -= input * zoomSpeed * Time.unscaledDeltaTime;
+            distance = Mathf.Clamp(distance, 1f, 200f);
+            return true;
+        }
+        return false;
+    }
+
     private void ConstrainAngles()
     {
         orbitAngles.x = Mathf.Clamp(orbitAngles.x, minVerticalAngle, maxVerticalAngle);
@@ -102,4 +118,5 @@ public class OrbitCamera : MonoBehaviour
             orbitAngles.y -= 360f;
         }
     }
+
 }

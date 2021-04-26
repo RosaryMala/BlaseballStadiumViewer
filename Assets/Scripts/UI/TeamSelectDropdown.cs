@@ -5,11 +5,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using UnityEngine.Events;
 
 [RequireComponent(typeof(Dropdown))]
 public class TeamSelectDropdown : MonoBehaviour
 {
+#if UNITY_WEBGL && !UNITY_EDITOR
+    const string BasePoint = "https://api.sibr.dev/proxy/";
+#else
+    const string BasePoint = "https://www.blaseball.com/";
+#endif
+
+
     Dropdown dropdown = null;
     private List<Stadium> stadiumList;
 
@@ -46,19 +52,19 @@ public class TeamSelectDropdown : MonoBehaviour
 
             foreach (var stadium in stadiumList)
             {
-                UnityWebRequest teamRequest = UnityWebRequest.Get("https://api.sibr.dev/proxy/database/team?id=" + stadium.Data.TeamID);
+                UnityWebRequest teamRequest = UnityWebRequest.Get(BasePoint + "database/team?id=" + stadium.Data.TeamID);
                 yield return teamRequest.SendWebRequest();
 
                 string stadiumName;
 
-                if(teamRequest.result == UnityWebRequest.Result.Success)
+                if (teamRequest.result == UnityWebRequest.Result.Success)
                 {
                     var team = JsonConvert.DeserializeObject<TeamData>(teamRequest.downloadHandler.text);
                     stadiumName = string.Format("{0} ({1}), {2}", stadium.Data.Name, stadium.Data.Nickname, team.FullName);
                 }
                 else
                 {
-                    Debug.LogError(teamRequest.error);
+                    Debug.LogError(teamRequest.error + " at url " + teamRequest.url);
                     stadiumName = string.Format("{0} ({1})", stadium.Data.Name, stadium.Data.Nickname);
                 }
 
