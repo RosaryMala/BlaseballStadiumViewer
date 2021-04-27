@@ -44,6 +44,11 @@ public class ProceduralField : MonoBehaviour
     private float fieldSlope = 0;
 
     [SerializeField]
+    private float bucketRadius = 5f;
+    [SerializeField]
+    private float bucketDistance = 10f;
+
+    [SerializeField]
     private int quarterPlateVerts = 5;
 
     [SerializeField]
@@ -58,6 +63,10 @@ public class ProceduralField : MonoBehaviour
     private Transform fourthBaseObj;
     [SerializeField]
     private Transform pitchingRubberObj;
+    [SerializeField]
+    private Transform leftCannonObj;
+    [SerializeField]
+    private Transform rightCannonObj;
 
     [SerializeField]
     private Transform cameraPivot;
@@ -96,6 +105,16 @@ public class ProceduralField : MonoBehaviour
     [SerializeField]
     private bool hasBigBucket = false;
 
+    [SerializeField]
+    private bool hasSalmonCannons = false;
+
+    [SerializeField]
+    private Color primaryColor = Color.white;
+    [SerializeField]
+    private Color secondaryColor = Color.white;
+    [SerializeField]
+    private Color tertiaryColor = Color.white;
+
     public void LoadStadium(StadiumData stadium)
     {
         grandiosity = stadium.Grandiosity;
@@ -112,6 +131,10 @@ public class ProceduralField : MonoBehaviour
         hype = stadium.Hype;
         hasGrindRail = stadium.Mods.Contains("GRIND_RAIL");
         hasBigBucket = stadium.Mods.Contains("BIG_BUCKET");
+        hasSalmonCannons = stadium.Mods.Contains("SALMON_CANNONS");
+        ColorUtility.TryParseHtmlString(stadium.MainColor, out primaryColor);
+        ColorUtility.TryParseHtmlString(stadium.SecondaryColor, out secondaryColor);
+        ColorUtility.TryParseHtmlString(stadium.TertiaryColor, out tertiaryColor);
         GenerateField();
     }
 
@@ -310,6 +333,31 @@ public class ProceduralField : MonoBehaviour
             backField.Add((IntPoint)((thirdBase + leftOutfieldPoint) / 2));
         backField.Add((IntPoint)(thirdBase + (Quaternion.Euler(0, fowlAngle / -2 - 90, 0) * (Vector3.forward * backStopDistance))));
 
+        if (hasSalmonCannons)
+        {
+            if (leftCannonObj != null)
+            {
+                leftCannonObj.gameObject.SetActive(true);
+                leftCannonObj.position = AddSlope(thirdBase + (Quaternion.Euler(0, fowlAngle / -2 - 90, 0) * (Vector3.forward * backStopDistance / 2)));
+            }
+            if (rightCannonObj != null)
+            {
+                rightCannonObj.gameObject.SetActive(true);
+                rightCannonObj.position = AddSlope(firstBase + (Quaternion.Euler(0, fowlAngle / 2 + 90, 0) * (Vector3.forward * backStopDistance / 2)));
+            }
+        }
+        else
+        {
+            if (leftCannonObj != null)
+            {
+                leftCannonObj.gameObject.SetActive(false);
+            }
+            if (rightCannonObj != null)
+            {
+                rightCannonObj.gameObject.SetActive(false);
+            }
+        }
+
         Clipper rearFieldClipper = new Clipper();
         rearFieldClipper.AddPath(backField, PolyType.ptSubject, true);
         rearFieldClipper.AddPaths(Clipper.ClosedPathsFromPolyTree(dirtTree), PolyType.ptClip, true);
@@ -319,7 +367,9 @@ public class ProceduralField : MonoBehaviour
         rearFieldClipper.Execute(ClipType.ctDifference, rearFieldTree, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
 
         //construct the actual outfield.
-        AddArcThreePoint(outfieldBorder, leftOutfieldPoint, centerOutfieldPoint, rightOutfieldPoint, 4);
+        AddArcThreePoint(outfieldBorder, leftOutfieldPoint, centerOutfieldPoint, rightOutfieldPoint, 4, out Vector3 outfieldCenter, out float outfieldRadius, out float outfieldStartAngle, out float outfieldEndAngle);
+        outfieldStartAngle -= 360;
+        outfieldEndAngle -= 360;
 
         outfieldBorder.Add((IntPoint)(Quaternion.Euler(0, fowlAngle / 2, 0) * (Vector3.forward * runLength + Vector3.right * warningZoneWidth / 2)));
         outfieldBorder.Add((IntPoint)(Quaternion.Euler(0, -fowlAngle / 2, 0) * (Vector3.forward * runLength + Vector3.left * warningZoneWidth / 2)));
@@ -378,6 +428,21 @@ public class ProceduralField : MonoBehaviour
             List<IntPoint> grindRail = new List<IntPoint>();
             AddArcThreePoint(grindRail, thirdBase + Vector3.right * runLaneWidth, pitchingRubber + Vector3.forward * pitchingMoundWidth / 2, firstBase + Vector3.left * runLaneWidth, 3);
             CreateWall(metalTriangles, grindRail, 0.2f, 0.05f);
+        }
+
+        if (hasBigBucket)
+        {
+            List<IntPoint> hole1 = new List<IntPoint>();
+            List<IntPoint> hole2 = new List<IntPoint>();
+            List<IntPoint> hole3 = new List<IntPoint>();
+
+            AddCircle(hole1, bucketRadius, Vector3.forward * (outfieldRadius + bucketDistance) + outfieldCenter);
+            AddCircle(hole2, bucketRadius, Quaternion.Euler(0, outfieldStartAngle * 2f / 3f, 0) * (Vector3.forward * (outfieldRadius + bucketDistance)) + outfieldCenter);
+            AddCircle(hole3, bucketRadius, Quaternion.Euler(0, outfieldEndAngle * 2f / 3f, 0) * (Vector3.forward * (outfieldRadius + bucketDistance)) + outfieldCenter);
+
+            CreateWall(metalTriangles, hole1, wallHeight, 0.25f, EndType.etClosedLine);
+            CreateWall(metalTriangles, hole2, wallHeight, 0.25f, EndType.etClosedLine);
+            CreateWall(metalTriangles, hole3, wallHeight, 0.25f, EndType.etClosedLine);
         }
 
         for (int i = 0; i < vertices.Count; i++)
@@ -698,6 +763,17 @@ public class ProceduralField : MonoBehaviour
         }
     }
 
+    private void AddCircle(List<IntPoint> points, float radius, Vector3 centerPoint, int segmentMultiplier = 1)
+    {
+        int verts = quarterPlateVerts * segmentMultiplier * 4;
+        float angleStep = 360f / verts;
+
+        for (int i = 0; i < verts; i++)
+        {
+            points.Add((IntPoint)(Quaternion.Euler(0, i * angleStep, 0) * (Vector3.forward * radius) + centerPoint));
+        }
+    }
+
     // Find the points of intersection.
     private int FindLineCircleIntersections(Vector3 circleCenter, float radius, Vector3 point1, Vector3 point2, out Vector3 intersection1, out Vector3 intersection2)
     {
@@ -742,19 +818,28 @@ public class ProceduralField : MonoBehaviour
         }
     }
 
+    private void AddArcThreePoint(List<IntPoint> points, Vector3 A, Vector3 B, Vector3 C, int segmentMultiplier, out Vector3 center, out float radius, out float startAngle, out float endAngle)
+    {
+        CircleCenter(A, B, C, out center, out radius);
+        startAngle = Quaternion.LookRotation(A - center).eulerAngles.y;
+        endAngle = Quaternion.LookRotation(C - center).eulerAngles.y;
+        var middleDirection = B - center;
+        if(middleDirection.z > 0)
+        {
+            endAngle += 360;
+        }
+        AddArc(points, startAngle, endAngle, radius, center, segmentMultiplier);
+    }
+
     private void AddArcThreePoint(List<IntPoint> points, Vector3 A, Vector3 B, Vector3 C, int segmentMultiplier = 1)
     {
         CircleCenter(A, B, C, out Vector3 center, out float radius);
         var andleA = Quaternion.LookRotation(A - center).eulerAngles.y;
         var angleB = Quaternion.LookRotation(C - center).eulerAngles.y;
         var middleDirection = B - center;
-        if(middleDirection.z > 0)
+        if (middleDirection.z > 0)
         {
             angleB += 360;
-        }
-        else
-        {
-
         }
         AddArc(points, andleA, angleB, radius, center, segmentMultiplier);
     }
