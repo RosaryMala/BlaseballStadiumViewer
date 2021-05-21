@@ -42,7 +42,7 @@ namespace QuickType
         public Guid TeamID { get; set; }
 
         [JsonProperty("hype")]
-        public int Hype { get; set; }
+        public float Hype { get; set; }
 
         [JsonProperty("mods")]
         public List<string> Mods { get; set; }
